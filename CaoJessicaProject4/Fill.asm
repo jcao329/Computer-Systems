@@ -1,11 +1,9 @@
-// Set the base address for the screen (start at address 16384)
-@16384
+@16384 // Set the base address for the screen (start at address 16384)
 D=A
 @SCREEN_START
 M=D
 
-// Set the end address for the screen (address 24575)
-@24575
+@24575 // Set the end address for the screen (address 24575)
 D=A
 @SCREEN_END
 M=D
