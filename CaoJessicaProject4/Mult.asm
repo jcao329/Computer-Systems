@@ -1,4 +1,4 @@
-// Adds 1+...+100.
+// Multiplies R0 and R1
 @i // i refers to some mem. location.
 M=1 // i=1
 @2 // product refers to mem. location 2.
