@@ -1,4 +1,6 @@
 import re
+import sys
+next_variable_address = 16
 
 # Define the Hack Computer instruction sets
 COMP_TABLE = { '0': '0101010', '1': '0111111', '-1': '0111010', 'D': '0001100', 'A': '0110000',
@@ -81,13 +83,15 @@ def translate_a_instruction(instruction):
     input: instruction: string 
     output: string -> binary command in machine language
     """
+    global next_variable_address
     address = instruction[1:]
     if address.isdigit():
         address = int(address)
     else:
         # Allocate new address if symbol is not already in the symbol table
         if address not in SYMBOL_TABLE:
-            SYMBOL_TABLE[address] = len(SYMBOL_TABLE)
+            SYMBOL_TABLE[address] = next_variable_address
+            next_variable_address += 1
         address = SYMBOL_TABLE[address]
     return f'0{address:015b}'  # A-instruction is 0 followed by 15-bit address
 
@@ -146,3 +150,5 @@ def assemble(filename):
     assemble_to_hack(instructions, output_filename)
     print(f'Assembly complete. Output written to {output_filename}')
 
+filename = str(sys.argv[1])
+assemble(filename)
