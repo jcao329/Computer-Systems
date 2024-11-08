@@ -153,7 +153,7 @@ M=D
 AM=M-1
 D=M
 A=A-1
-M=D-M
+M=M-D
 @THIS
 D=M
 @6
@@ -181,8 +181,8 @@ M=D+M
 AM=M-1
 D=M
 A=A-1
-M=D-M
-@6
+M=M-D
+@11
 D=M
 @SP
 AM=M+1

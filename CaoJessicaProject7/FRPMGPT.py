@@ -1,32 +1,31 @@
 import sys
 import os
 
-COMMAND_TYPE = ["sub","add", "neg",  "eq", "gt", "lt", "and", "or", "not"]
+# Mapping VM segments to Hack assembly symbols
+SEGMENTS = {
+    'local': 'LCL',
+    'argument': 'ARG',
+    'this': 'THIS',
+    'that': 'THAT',
+    'temp': 5,
+    'pointer': 3,
+}
+
+COMMAND_TYPE = ["sub", "add", "neg", "eq", "gt", "lt", "and", "or", "not"]
 
 # Helper to generate unique labels for conditional commands (eq, gt, lt)
 label_counter = 0
 
 def unique_label():
-    """
-    Generates new labels for gt, eq, lt. 
-    Input: nothing
-    returns: string of the form LABEL_K where K is an integer that is the Kth label 
-    """
     global label_counter
     label = f"LABEL_{label_counter}"
     label_counter += 1
     return label
 
 def translate_vm_to_asm(vm_filename, asm_filename):
-    """
-    writes translate vsm file to asm file
-
-    Inputs: vritual machine language file name and asm filename as strings
-    returns: NULL
-    """
     asm_instructions = []
-    basename = os.path.splitext(os.path.basename(vm_filename))[0]
-    
+    basename = os.path.splitext(os.path.basename(vm_filename))[0]  # For handling static segment
+
     with open(vm_filename, 'r') as file:
         lines = file.readlines()
     
@@ -42,14 +41,6 @@ def translate_vm_to_asm(vm_filename, asm_filename):
         file.write('\n'.join(asm_instructions) + '\n')
 
 def translate_command(command, basename):
-    """
-    Determines if the command is a push, pull, or arithmetic command and returns hack assembly code as a list 
-    where each element is a line.
-
-    input: list[string] - command
-           string - basename
-    returns list[string]
-    """
     cmd_type = command[0]
     if cmd_type == 'push':
         return translate_push(command[1], command[2], basename)
@@ -61,22 +52,6 @@ def translate_command(command, basename):
         return []
 
 def translate_push(segment, index, basename):
-    """
-    Translate push vm lines. Segment indicates type of the push command. 
-    input: string - segment 
-           index - int
-           string - basename (for static)
-    returns list[string] of the corresponding hack assembly code
-    """
-    SEGMENTS = {
-    'local': 'LCL',
-    'argument': 'ARG',
-    'this': 'THIS',
-    'that': 'THAT',
-    'temp': 5,
-    'pointer': 3,
-    'static': f"{basename}.{index}"
-    }
     instructions = []
     index = int(index)
 
@@ -89,20 +64,9 @@ def translate_push(segment, index, basename):
             "A=A-1",
             "M=D"
         ]
-    elif segment in SEGMENTS:
-        base_address = SEGMENTS[segment]
-        if segment == 'temp' or segment == 'pointer':
-            # temp and pointer are directly addressable
-            instructions = [
-                f"@{base_address + index}",
-                "D=M",
-                "@SP",
-                "AM=M+1",
-                "A=A-1",
-                "M=D"
-                ]
-        elif segment == 'static':
-            instructions = [
+    elif segment == 'static':
+        # Static variables are assigned memory based on the filename and index
+        instructions = [
             f"@{basename}.{index}",
             "D=M",
             "@SP",
@@ -110,8 +74,18 @@ def translate_push(segment, index, basename):
             "A=A-1",
             "M=D"
         ]
+    elif segment in SEGMENTS:
+        base_address = SEGMENTS[segment]
+        if segment == 'temp' or segment == 'pointer':
+            instructions = [
+                f"@{base_address + index}",
+                "D=M",
+                "@SP",
+                "AM=M+1",
+                "A=A-1",
+                "M=D"
+            ]
         else:
-            # local, argument, this, that are base pointers
             instructions = [
                 f"@{base_address}",
                 "D=M",
@@ -126,31 +100,21 @@ def translate_push(segment, index, basename):
     return instructions
 
 def translate_pop(segment, index, basename):
-    """
-    Translate pop vm lines. Segment deteremines type of pop command. 
-
-    input: string - segment 
-           index - int
-           string - basename (for static)
-    returns list[string] of the corresponding hack assembly code
-    """
-    SEGMENTS = {
-    'local': 'LCL',
-    'argument': 'ARG',
-    'this': 'THIS',
-    'that': 'THAT',
-    'temp': 5,
-    'pointer': 3,
-    'static': f"{basename}.{index}"
-    }
     instructions = []
     index = int(index)
 
-    if segment in SEGMENTS:
+    if segment == 'static':
+        instructions = [
+            "@SP",
+            "AM=M-1",
+            "D=M",
+            f"@{basename}.{index}",
+            "M=D"
+        ]
+    elif segment in SEGMENTS:
         base_address = SEGMENTS[segment]
         if segment == 'temp' or segment == 'pointer':
             target = base_address + index
-            # temp and pointer are directly addressable
             instructions = [
                 "@SP",
                 "AM=M-1",
@@ -158,16 +122,7 @@ def translate_pop(segment, index, basename):
                 f"@{target}",
                 "M=D"
             ]
-        elif segment == 'static':
-            instructions = [
-            "@SP",
-            "AM=M-1",
-            "D=M",
-            f"@{base_address}",
-            "M=D"
-            ]
         else:
-            # local, argument, this, that are base pointers
             instructions = [
                 f"@{base_address}",
                 "D=M",
@@ -185,12 +140,6 @@ def translate_pop(segment, index, basename):
     return instructions
 
 def translate_arithmetic(command):
-    """
-    Translates arithmetic commands.
-
-    input: string - command
-    returns list[string] of the corresponding hack assembly code
-    """
     instructions = []
     if command == 'add':
         instructions = [
@@ -240,7 +189,7 @@ def translate_arithmetic(command):
     return instructions
 
 if __name__ == "__main__":
-    vm_filename = sys.argv[1]
-    asm_filename = vm_filename.replace('.vm', '.asm')
+    vm_filename = sys.argv[1]  
+    asm_filename = vm_filename.replace('.vm', '1.asm') 
     translate_vm_to_asm(vm_filename, asm_filename)
     print(f"Translation complete. Output written to {asm_filename}")

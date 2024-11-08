@@ -56,13 +56,13 @@ D=M
 @R13
 A=M
 M=D
-@0
+@3
 D=M
 @SP
 AM=M+1
 A=A-1
 M=D
-@1
+@4
 D=M
 @SP
 AM=M+1
