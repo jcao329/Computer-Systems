@@ -59,7 +59,6 @@ def translate_push(segment, index):
             "@SP",
             "AM=M+1",
             "A=A-1",
-            "@SP",
             "M=D"
         ]
     elif segment in SEGMENTS:
@@ -71,7 +70,7 @@ def translate_push(segment, index):
                 "D=M",
                 "@SP",
                 "AM=M+1",
-                "A=A+1",
+                "A=A-1",
                 "M=D",
             ]
         else:
@@ -80,7 +79,7 @@ def translate_push(segment, index):
                 f"@{base_address}",
                 "D=M",
                 f"@{index}",
-                "A=A+D",
+                "A=D+A",
                 "D=M",
                 "@SP",
                 "AM=M+1",
@@ -96,12 +95,13 @@ def translate_pop(segment, index):
     if segment in SEGMENTS:
         base_address = SEGMENTS[segment]
         if segment == 'temp' or segment == 'pointer':
+            target = base_address + index
             # temp and pointer are directly addressable
             instructions = [
                 "@SP",
                 "AM=M-1",
                 "D=M",
-                f"@{base_address + index}",
+                f"@{target}",
                 "M=D"
             ]
         else:
@@ -126,7 +126,7 @@ def translate_arithmetic(command):
     instructions = []
     if command == 'add':
         instructions = [
-            "@SP", "AM=M-1", "D=M", "A=A-1", "M=M+D"
+            "@SP", "AM=M-1", "D=M", "A=A-1", "M=D+M"
         ]
     elif command == 'sub':
         instructions = [
@@ -139,31 +139,31 @@ def translate_arithmetic(command):
     elif command == 'eq':
         label = unique_label()
         instructions = [
-            "@SP", "AM=M-1", "D=M", "A=A-1", "D=M-D",
+            "@SP", "AM=M-1", "D=M", "A=A-1", "D=M-D", "M=-1",
             f"@{label}", "D;JEQ", "@SP", "A=M-1", "M=0",
-            f"({label})", "@SP", "A=M-1", "M=-1"
+            f"({label})"
         ]
     elif command == 'gt':
         label = unique_label()
         instructions = [
-            "@SP", "AM=M-1", "D=M", "A=A-1", "D=M-D",
+            "@SP", "AM=M-1", "D=M", "A=A-1", "D=M-D","M=-1",
             f"@{label}", "D;JGT", "@SP", "A=M-1", "M=0",
-            f"({label})", "@SP", "A=M-1", "M=-1"
+            f"({label})"
         ]
     elif command == 'lt':
         label = unique_label()
         instructions = [
-            "@SP", "AM=M-1", "D=M", "A=A-1", "D=M-D",
+            "@SP", "AM=M-1", "D=M", "A=A-1", "D=M-D", "M=-1",
             f"@{label}", "D;JLT", "@SP", "A=M-1", "M=0",
-            f"({label})", "@SP", "A=M-1", "M=-1"
+            f"({label})"
         ]
     elif command == 'and':
         instructions = [
-            "@SP", "AM=M-1", "D=M", "A=A-1", "M=M&D"
+            "@SP", "AM=M-1", "D=M", "A=A-1", "M=D&M"
         ]
     elif command == 'or':
         instructions = [
-            "@SP", "AM=M-1", "D=M", "A=A-1", "M=M|D"
+            "@SP", "AM=M-1", "D=M", "A=A-1", "M=D|M"
         ]
     elif command == 'not':
         instructions = [
