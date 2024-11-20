@@ -21,14 +21,19 @@ def unique_label(base="LABEL"):
 
 def translate_vm_to_asm(vm_files, asm_filename):
     """
-    docstring here
+    Utilizes helper functions to write the trandslated output of virtual machine language from the vm_files
+    to a asm_filename.asm output file 
+    input: 
+        - vm_files - list[string] of the vm files names 
+        - asm_filename - string of the output filename 
+    Output: 
+        -None, but writes the translated vm file to asm_filename.asm 
     """
     asm_instructions = []
     
-    # Add bootstrap code
+
     asm_instructions.extend(generate_bootstrap_code())
     
-    # Translate each VM file and append its assembly code
     for vm_filename in vm_files:
         basename = os.path.splitext(os.path.basename(vm_filename))[0]
         asm_instructions.extend(translate_file(vm_filename, basename))
@@ -43,8 +48,8 @@ def translate_file(vm_filename, basename):
     Translates a single .vm file into assembly instructions.
 
     Inputs:
-        vm_filename - the name of the .vm file
-        basename - the base name of the file (used for static variables)
+        string - vm_filename 
+        string - basename the base name of the file (used for static variables)
     Returns:
         list[string] - assembly code lines
     """
@@ -160,19 +165,40 @@ def translate_return():
 
 def translate_label(label):
     """
-    docstring
+    Used for loops. Will be the (LABEL) in assembly code when the beginning of a loop is detected. 
+
+    input:
+        -label as a string 
+    output: 
+        - (LABEL) as a string 
     """
     return [f"({label})"]
 
 def translate_goto(label):
     """
-    docstring
+    Used for loops. Will be the jump required in loops that correspond to goto. 
+
+    input: 
+        - label pf loop as a string ()
+    output: 
+        - @LABEL 
+          O;JMP as a list of strings
     """
     return [f"@{label}", "0;JMP"]
 
 def translate_if_goto(label):
     """
-    docstring
+    Used for loops. If-goto statements. 
+
+    input: 
+        - label pf loop as a string ()
+    output: 
+        - @SP
+          AM=M-1
+          D=M
+          @LABEL
+          D;JNE as a list of strings 
+
     """
     return [ 
         "@SP",

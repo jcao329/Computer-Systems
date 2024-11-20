@@ -1,0 +1,9 @@
+To use the VMp2.py to translate a vm files to asm, type the following into the command line
+
+python3 VMp1.py filename1 filname2 ... filenamen 
+
+(this code assumes that filename ends in a .vm extension)
+
+Where filename1 filname2 ... filenamen are all object files that need to be translated to assembly code 
+
+no bugs I think 
