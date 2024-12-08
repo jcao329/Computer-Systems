@@ -1,0 +1,23 @@
+class Card{
+    field int rank; // 11 is jack 12 is queen 13 is king 
+    field int suit; // 1 for clubs, 2 for diamonds, 3 for hearts, 4 for spades
+    constructor Card new(int r, int s){
+        let rank = r;
+        let suit = s;
+
+        return this;
+    }
+
+    method int getRank(){
+        return rank;
+    }
+
+    method int getSuit(){
+        return suit;
+    }
+
+    method void dispose(){
+        do Memory.deAlloc(this);
+        return;
+    }
+}

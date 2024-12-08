@@ -1,0 +1,218 @@
+class Game {
+    field Player player1;
+    field Player player2;
+    field Deck deck;
+    field int winner; // 0: no winner, 1: player1, 2: player2
+    field int i;
+
+    constructor Game new() {
+        let deck = Deck.new();
+        do deck.shuffle();
+        let player1 = Player.new("Player 1");
+        let player2 = Player.new("Player 2");
+
+        let i = 0;
+        while(i < 52){
+            //lazily, player 1 gets first half of deck and player 2 gets second half
+            if(i < 26){
+                do player1.addCard(deck[i]);
+            }
+            else{
+                do player2.addCard(deck[i]);
+            }
+        }
+
+        let winner = 0;
+        return this;
+    }
+
+    method void dispose() {
+        if (~(player1 = null)){
+            do player1.dispose();
+        }
+        if (~(player2 = null)){
+            do player2.dispose();
+        }
+        do deck.dispose();
+        do Memory.deAlloc(this);
+        return;
+   }
+    
+    method void displayGUI() {
+        var int count1;
+        var int count2;
+
+        let count1 = player1.getCardCount();
+        let count2 = player2.getCardCount();
+
+        // Draw player names and card counts
+        do Output.moveCursor(0, 10);
+        do Output.printString( "Player 1: ");
+        do Output.moveCursor(0, 20);
+        do Output.printInt(count1);
+        do Output.moveCursor(1, 10);
+        do Output.printString( "Player 2: ");
+        do Output.moveCursor(1, 20);
+        do Output.printInt(count1);
+
+        // Display status instructions
+        do Output.moveCursor(3, 0);
+        do Output.printString("Press 'N' to play a round or 'Q' to quit.");
+
+        do Screen.drawRectangle(10, 5, 20, 5);
+        do Screen.drawRectangle(25, 10, 20, 5);
+
+        // Show the card preview (simple representation)
+        do displayCardPreview(player1, 5, 12);  // Player 1 card preview area
+        do displayCardPreview(player2, 25, 12); // Player 2 card preview area
+
+        return;
+    }
+
+
+    method void startGame() {
+        var char key;
+
+        do Screen.clearScreen();
+        do displayGUI(); // Display the initial GUI layout
+        
+        while ((winner = 0) & ~(key = "Q")) {
+            // Wait for player input
+            let key = Keyboard.keyPressed();
+            if (key = "N") {
+                do playRound();
+                do displayGUI();// Update the GUI after each round
+            }
+        }
+
+        if (winner = 1) {
+            do Screen.clearScreen();
+            do Output.moveCursor(5,10);
+            do Output.printString("Player 1 wins the game!");
+        } 
+        else{ 
+            if(winner = 2) {
+            do Screen.clearScreen();
+            do Output.moveCursor(5, 10);
+            do Output.printString("Player 2 wins the game!");
+            }
+            else{
+            do Screen.clearScreen();
+            do Output.moveCursor(5,10);
+            do Output.printString("Game quit by user.");
+            }
+        } 
+        return;
+    }
+
+    method void displayCardPreview(Player p, int col, int row) {
+        var Card card;
+        var int rank;
+        let card = p.getTopCard(); // Assume we have a getTopCard() method to show the top card
+        if (~(card = -1)) {
+            // Draw a rectangle for the card
+            do Screen.drawRectangle(col, row, 10, 5);  // Card rectangle
+
+            // Display card number (text inside rectangle)
+            do Output.moveCursor(row + 2, col + 2);
+            let rank = card.getRank();
+            do Output.printInt(rank);  // Card value inside the card area
+        }
+        return;
+    }
+
+
+    method Player playRound() {
+        //Some problems with the recursion. What happens if we stay in inifitne recursive call?
+        var Card card1;
+        var Card card2;
+        var Card facedowncard1;
+        var Card facedowncard2;
+        var Player warwinner;
+        var int recursionlimit;
+
+        let card1 = player1.drawCard();
+        let card2 = player2.drawCard();
+
+        if (player1.isEmpty() | player2.isEmpty()) {
+            if (player1.isEmpty()) {
+                let winner = 2;
+                return player1;
+            } else {
+                let winner = 1;
+                return player2;
+            }
+        }
+
+
+        if (card1.getRank() > card2.getRank()) {
+            do player1.collectCards(card1, card2);
+            do Output.moveCursor(3,0);
+            do Output.printString("Player 1 wins this round!");
+            return player1;
+        } 
+        else{
+            if (card2.getRank() > card1.getRank()) {
+            do player2.collectCards(card1, card2);
+            do Output.moveCursor(3,0);
+            do Output.printString("Player 2 wins this round!");
+            return player2;
+            }
+            else {
+            do Output.moveCursor(3,0);
+            do Output.printString("War!");
+
+            if (recursionlimit < 0) {
+            do Output.printString("Too many wars! Skipping...");
+            return null;
+            }
+
+            let facedowncard1 = player1.drawCard();
+            let facedowncard2 = player2.drawCard(); 
+            let recursionlimit = recursionlimit - 1;
+
+            let warwinner = playRound();
+
+            if (~(warwinner = null)){
+            do warwinner.collectCards(facedowncard1, facedowncard2);
+            do warwinner.collectCards(card1, card2);
+            }
+
+            return warwinner;
+            }
+        }
+    }
+
+    method void animateCardDraw(int card1, int card2) {
+        var int x1;
+        var int x2;
+        var int x3;
+        var int x4;
+        var int y1;
+        var int y2;
+
+        let x1 = 10;
+        let x2 = 30;
+        let y1 = 12;
+        let y2 = 12;
+
+        let x1 = x1 + 1;  
+        let x2 = x2 - 1; 
+
+        do Screen.clearScreen();
+        do displayGUI(); 
+        do displayCardAtPosition(card1, x1, y1);  
+        do displayCardAtPosition(card2, x2, y2); 
+        return;
+    }
+
+    method void displayCardAtPosition(int card, int x, int y) {
+        if (~(card = -1)) {
+            do Screen.drawRectangle(x, y, 10, 5);  
+            do Output.moveCursor(y+2, x+3);
+            do Output.printInt(card); 
+        }
+        return;
+    }
+
+}

@@ -1,0 +1,59 @@
+class Deck{
+    field Array cards;
+    field int i;
+    field int j;
+    
+    constructor Deck new(){
+        let cards = Array.new(52);
+        let i = 0;
+        let j = 0;
+
+        while(i<4){
+            while(j < 13){
+                let cards[i*13 + j] = Card.new(j+1, i+1);
+            }
+        }
+        return this;
+    }
+
+    method void dispose(){
+        do cards.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void shuffle(){
+        //basic shuffle algorithm for array 
+         var int i, j, temp;
+
+        do Memory.init();
+
+        let i = 52 - 1;
+        while (i > 0) {
+            let j = Random.randRange(i);
+
+            let temp = cards[i];
+            let cards[i] = cards[j];
+            let cards[j] = temp;
+
+            let i = i - 1;
+        }
+        return;
+    }
+
+
+    method Card compare(Card c1, Card c2){
+        if (c1.getRank() > c2.getRank()){
+            return c1;
+        }
+        else{
+            if (c1.getRank() < c2.getRank()){
+                return c2;
+            }
+            else{
+                return null;
+            }
+        }
+
+    }
+}

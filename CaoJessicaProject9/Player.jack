@@ -1,0 +1,57 @@
+class Player {
+    field Array cards; // Represents the deck of cards
+    field int cardCount; // Number of cards in the player's deck
+    field String name;
+    field int i;
+
+    constructor Player new(String playerName) {
+        let cards = Array.new(52); 
+        let cardCount = 0; 
+        let name = playerName;
+        return this;
+    }
+
+    method void addCard(Card c){
+        let cards[cardCount] = c;
+        let cardCount = cardCount + 1;
+        return;
+    }
+
+    method int getTopCard(){
+        return cards[cardCount-1];
+    }
+
+    method int getCardCount(){
+        return cardCount;
+    }
+
+    method Card drawCard() {
+        var Card card;
+        if (cardCount > 0) {
+            let cardCount = cardCount - 1;
+            let card = cards[cardCount];
+        } 
+        else {
+            let card = null; 
+        }
+        return card;
+    }
+
+    method void collectCards(Card card1, Card card2) {
+        let cards[cardCount] = card1;
+        let cardCount = cardCount + 1;
+        let cards[cardCount] = card2;
+        let cardCount = cardCount + 1;
+        return;
+    }
+
+    method boolean isEmpty() {
+        return (cardCount = 0);
+    }
+
+    method void dispose() {
+      do cards.dispose();  
+      do Memory.deAlloc(this);
+      return;
+   }
+}

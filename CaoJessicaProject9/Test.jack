@@ -1,0 +1,22 @@
+class Test{
+    field int x;
+    field int y;
+
+    constructor Test new(int a, int b){
+        let x = a + b;
+        let y = a - b;
+        return this;
+    }
+    method int getX(){
+        do Output.moveCursor(0,5);
+        do Output.printInt(x);
+        return x;
+    }
+    method int getY(){
+        return y;
+    }
+    method void dispose(){
+        do Memory.deAlloc(this);
+        return;
+    }
+}
